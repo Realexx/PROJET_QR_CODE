@@ -27,6 +27,7 @@ class VoronoiQR:
                         img_new[i, j] = 255 - img_hidden[i, j] - (1 - img_hidden[i, j]) * 2
                     else:
                         img_new[i, j] = 255 - (1 - img_hidden[i, j]) - img_hidden[i, j] * 2
+
         return img_new
 
     def extract(self, img_augmented, C):
@@ -111,3 +112,39 @@ class VoronoiQR:
                     img_new[i, j] = 255 - pixel_value
 
         return img_new
+
+    def extract_voronoi(self, img_augmented):
+        # Initialiser un tableau pour stocker les images extraites
+        images_extracted = [np.zeros_like(img_augmented, dtype=np.uint8) for _ in range(4)]
+
+        # Définir les séquences pour chaque région de Voronoi
+        sequence_map = {
+            0: [1, 3, 2, 0],
+            1: [3, 2, 0, 1],
+            2: [2, 0, 3, 1]
+        }
+
+        height, width = img_augmented.shape
+
+        for y in range(height):
+            for x in range(width):
+                pixel_augmented_qr = img_augmented[y, x]
+                zone_number = np.argmin(np.sum((self.voronoi.points - np.array([y, x])) ** 2, axis=1))
+
+                sequence_zone = sequence_map[zone_number]
+
+                cpt = 3
+                if pixel_augmented_qr > 128:
+                    pixel_augmented_qr = abs(pixel_augmented_qr - 255)
+
+                for pos in sequence_zone:
+                    if pixel_augmented_qr // (2 ** cpt) > 0:
+                        images_extracted[pos][y, x] = 255
+                    else:
+                        images_extracted[pos][y, x] = 0
+
+                    pixel_augmented_qr = pixel_augmented_qr % (2 ** cpt)
+
+                    cpt -= 1
+
+        return images_extracted
