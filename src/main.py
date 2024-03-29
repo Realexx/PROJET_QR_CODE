@@ -1,4 +1,6 @@
 import cv2
+
+from qr_generator import *
 from seeds_generator import SeedGenerator
 from voronoi_qr import VoronoiQR
 import matplotlib.pyplot as plt
@@ -15,7 +17,9 @@ def main():
     # PARTIE 1 : Dissimuler un code QR dans un code QR hôte #
     #########################################################
     # Charger les images des codes QR
+    generate_host_qrcode()
     img_host = cv2.imread('../qrcodes/qrcode_host.png', cv2.IMREAD_GRAYSCALE)
+    generate_hidden_qrcode()
     img_hidden = cv2.imread('../qrcodes/qrcode_hidden.png', cv2.IMREAD_GRAYSCALE)
 
     # Générer N germes aléatoirement
@@ -47,6 +51,16 @@ def main():
     ########################################################################
     # Partie 2 : Dissimuler plusieurs images binaires dans un code QR hôte #
     ########################################################################
+    # Charger les images des codes QR à cacher
+    nb_qr_to_hide = 5
+    generate_multiple_qrcode_to_hide(nb_qr_to_hide)
+    qrs_to_hide = [cv2.imread(f'../qrcodes/multiples/qrcode_hidden_{i}.png', cv2.IMREAD_GRAYSCALE)
+                   for i in range(nb_qr_to_hide)]
+
+    # Créer l'image augmentée en dissimulant les images binaires
+    img_augmented_multiple = vor_qr.insert_multiple(img_host, qrs_to_hide)
+    # Sauvegarder l'image augmentée
+    cv2.imwrite('../qrcodes/multiples/qrcode_augmented_multiple.png', img_augmented_multiple)
 
 
 if __name__ == '__main__':

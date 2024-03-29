@@ -32,17 +32,30 @@ class VoronoiQR:
             for j in range(img_augmented.shape[1]):
                 if img_augmented[i, j] < 4:
                     a = img_augmented[i, j] % 2
-                    b = img_augmented[i, j] // 2
+                    b = 255 - a * 255
                 else:
                     a = (255 - img_augmented[i, j]) % 2
-                    b = (255 - img_augmented[i, j]) // 2
+                    b = 255 - a * 255
 
-                # Trouver la région de Voronoï correspondante
                 k = np.argmin(np.sum((self.voronoi.points - np.array([i, j])) ** 2, axis=1)) + 1
 
                 if C[k] == 0:
                     img_extracted[i, j] = a * 255
                 else:
-                    img_extracted[i, j] = 255 - a * 255  # NE MARCHE PAS AVEC 'b'
+                    img_extracted[i, j] = b
 
         return img_extracted
+
+    def insert_multiple(self, img_host, img_hiddens):
+        img_new = np.zeros_like(img_host, dtype=np.uint8)
+
+        for i in range(img_host.shape[0]):
+            for j in range(img_host.shape[1]):
+                # Calculer la nouvelle valeur du pixel pour chaque image à dissimuler
+                pixel_value = sum(img_hidden[i, j] * 2 ** k * 255 for k, img_hidden in enumerate(img_hiddens))
+                if img_host[i, j] == 0:
+                    img_new[i, j] = pixel_value
+                else:
+                    img_new[i, j] = 255 - pixel_value
+
+        return img_new
