@@ -18,15 +18,15 @@ def main():
     #########################################################
     # Charger les images des codes QR
     generate_host_qrcode()
-    img_host = cv2.imread('../qrcodes/qrcode_host.png', cv2.IMREAD_GRAYSCALE)
+    qr_host = cv2.imread('../qrcodes/qrcode_host.png', cv2.IMREAD_GRAYSCALE)
     generate_hidden_qrcode()
-    img_hidden = cv2.imread('../qrcodes/qrcode_hidden.png', cv2.IMREAD_GRAYSCALE)
+    qr_to_hide = cv2.imread('../qrcodes/qrcode_hidden.png', cv2.IMREAD_GRAYSCALE)
 
     # Générer N germes aléatoirement
     N = 9
     seed_gen = SeedGenerator(key=6)
-    seeds = seed_gen.generate_seeds(N, img_host.shape)
-    print(seeds)
+    seeds = seed_gen.generate_seeds(N, qr_host.shape)
+    print(f"Germes Exercice 1 : \n{seeds}")
 
     # Partitionner l'ensemble {1, 2, … , N} en deux parties A et B de même taille
     A = set(range(1, N + 1, 2))
@@ -34,17 +34,17 @@ def main():
 
     # Définir la clé C
     C = {k: 0 if k in A else 1 for k in range(1, N + 1)}
-    print(C)
+    print(f"C = {C}")
 
     # Créer le diagramme de Voronoi et effectuer l'insertion
     vor_qr = VoronoiQR(seeds)
     # plot_voronoi(vor_qr.voronoi)
-    img_augmented = vor_qr.insert(img_host, img_hidden, C)
+    qr_augmented = vor_qr.insert(qr_host, qr_to_hide, C)
     # Sauvegarder l'image augmentée
-    cv2.imwrite('../qrcodes/qrcode_augmented.png', img_augmented)
+    cv2.imwrite('../qrcodes/qrcode_augmented.png', qr_augmented)
 
     # Effectuer l'extraction
-    img_extracted = vor_qr.extract(img_augmented, C)
+    img_extracted = vor_qr.extract(qr_augmented, C)
     # Sauvegarder l'image extraite
     cv2.imwrite('../qrcodes/qrcode_hidden_retrieved.png', img_extracted)
 
@@ -58,9 +58,34 @@ def main():
                    for i in range(nb_qr_to_hide)]
 
     # Créer l'image augmentée en dissimulant les images binaires
-    img_augmented_multiple = vor_qr.insert_multiple(img_host, qrs_to_hide)
+    qr_augmented_multiple = vor_qr.insert_multiple(qr_host, qrs_to_hide)
     # Sauvegarder l'image augmentée
-    cv2.imwrite('../qrcodes/multiples/qrcode_augmented_multiple.png', img_augmented_multiple)
+    cv2.imwrite('../qrcodes/multiples/qrcode_augmented_multiple.png', qr_augmented_multiple)
+
+    # Effectuer l'extraction
+    img_extracted_multiple = vor_qr.extract_multiple(qr_augmented_multiple, nb_qr_to_hide)
+    # Sauvegarder les images extraites
+    for i, img_extracted in enumerate(reversed(img_extracted_multiple)):
+        cv2.imwrite(f'../qrcodes/multiples/qrcode_hidden_retrieved_{i}.png', img_extracted)
+
+    ###################################
+    # Partie 3 : QR augmenté sécurisé #
+    ###################################
+    N = 3
+    seed_gen = SeedGenerator(key=2)
+    seeds = seed_gen.generate_seeds(N, qr_host.shape)
+    print(f"\nGermes Exercice 3 : \n{seeds}")
+
+    vor_qr_secured = VoronoiQR(seeds)
+
+    # Charger les images des codes QR à cacher
+    nb_qr_to_hide = 4
+    generate_secure_qrcode_to_hide(nb_qr_to_hide)
+    qrs_to_hide = [cv2.imread(f'../qrcodes/secured/qrcode_hidden_{i}.png', cv2.IMREAD_GRAYSCALE)
+                   for i in range(nb_qr_to_hide)]
+
+    qr_augmented_secured = vor_qr_secured.insert_voronoi(qr_host, qrs_to_hide)
+    cv2.imwrite('../qrcodes/secured/qrcode_augmented_secured.png', qr_augmented_secured)
 
 
 if __name__ == '__main__':
