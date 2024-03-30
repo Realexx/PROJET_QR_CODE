@@ -15,3 +15,4 @@
 
 ## Autre
 - Il y a un bug avec la dernière fonction de la partie 3, les QR codes 0 et 3 sont bien extraits mais les autres ne le sont pas (problème avec une zone de Voronoï).
+- Lien du GitHub : https://github.com/Realexx/PROJET_QR_CODE.git
